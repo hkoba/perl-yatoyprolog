@@ -6,6 +6,9 @@ use InstanceVariables   qw( maxid %intern @clauses
 			    topenv
 			    @trail tp
 			  );
+use Exporter qw/import/;
+our @EXPORT_OK = qw/List/;
+
 use Carp;
 our $self;
 our $debug;
@@ -286,7 +289,7 @@ sub CallInlineSub {
   @{$cells}[@indices] = map { new Number($_) } @result;
   return $bool;
 }
-*main::List = \&List;
+
 sub List {
   #my($x) = shift;
   my($y); my $z = "nil";

@@ -33,9 +33,15 @@ our $array_template = <<'EODef';
     InstanceVariables::Die("PACK", "VAR", "array") if !defined $PACK::self;
     $storage{$$PACK::self}->[$_[1]] = $_[2];
   }
+  sub FETCHSIZE {
+    InstanceVariables::Die("PACK", "VAR", "array") if !defined $PACK::self;
+    # print "~~", $#{$storage{$$PACK::self}}, "\n" ;
+    my $ref = $storage{$$PACK::self} or return 0;
+    scalar @$ref;
+  }
   sub length {
     InstanceVariables::Die("PACK", "VAR", "array") if !defined $PACK::self;
-    print "~~", $#{$storage{$$PACK::self}}, "\n" ;
+    # print "~~", $#{$storage{$$PACK::self}}, "\n" ;
     $#{$storage{$$PACK::self}};
   }
   tie @PACK::VAR, 'PACK::VAR::array';
