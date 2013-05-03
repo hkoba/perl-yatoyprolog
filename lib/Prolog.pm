@@ -1,4 +1,5 @@
 package Prolog;
+# -*- mode: perl; coding: utf-8 -*-
 use strict;
 use InstanceVariables   qw( maxid %intern @clauses
 			    cells cfree topgoals c
@@ -26,17 +27,17 @@ sub store {
   $cfree = $x + 1 if ($x >= $cfree);  # extend
   $cells->[$x] = $val;  return $self;
 }
-# dereference ½èÍı
-# °ú¿ô, ÊÖ¤êÃÍ, ¤È¤â¤ËÅº»ú¤È¤·¤Æ valid ¤Ç¤¢¤ë¤Ù¤·.
+# dereference å‡¦ç†
+# å¼•æ•°, è¿”ã‚Šå€¤, ã¨ã‚‚ã«æ·»å­—ã¨ã—ã¦ valid ã§ã‚ã‚‹ã¹ã—.
 sub value {
   local($self) = shift;   my($x) = shift;
   my($y);
   confess "Undefined cell index" if !defined $x;
   $x = $y while defined($y = $cells->[$x]) && !ref $y;
-  # ¾ò·ï¼°¤è¤ê,
+  # æ¡ä»¶å¼ã‚ˆã‚Š,
   #    $cells->[$x] == undef
   # || $cells->[$x] == defined ref
-  return $x; # index ¤¬ÊÖ¤ë¤Ã¤Æ»ö¤ËÃí°Õ!
+  return $x; # index ãŒè¿”ã‚‹ã£ã¦äº‹ã«æ³¨æ„!
 }
 sub remember {
   local($self) = shift;
@@ -44,7 +45,7 @@ sub remember {
   $trail[$tp] = shift;
   return $self;
 }
-# °ú¿ô¤Ï, ¤Á¤ã¤ó¤È deref ¤·¤Æ¤«¤éÅÏ¤¹»ö!.
+# å¼•æ•°ã¯, ã¡ã‚ƒã‚“ã¨ deref ã—ã¦ã‹ã‚‰æ¸¡ã™äº‹!.
 sub unify {
   local($self) = shift;
   my($t1, $t2) = @_;
@@ -57,11 +58,11 @@ sub unify {
   } elsif (!defined $a){
     $cells->[$t1] = $t2;    $self->remember($t1); return 1;
   } 
-  # ¤³¤³¤Ç¤Ï, ¤É¤Á¤é¤â ref ¤Ë¤Ê¤Ã¤Æ¤¤¤ë.
+  # ã“ã“ã§ã¯, ã©ã¡ã‚‰ã‚‚ ref ã«ãªã£ã¦ã„ã‚‹.
   # print STDERR "? $a == $b ";
   if( $a == $b ){
-    # Æ±¤¸´Ø·¸Ì¾¤ò»ı¤Ä.
-    # ¢ª Æ±¤¸¥Ñ¥¿¥ó¤«¤É¤¦¤«¸¡ºº.
+    # åŒã˜é–¢ä¿‚åã‚’æŒã¤.
+    # â†’ åŒã˜ãƒ‘ã‚¿ãƒ³ã‹ã©ã†ã‹æ¤œæŸ».
     my($arity) = $cells->[$t1]->argnum;
     my($i);
     foreach $i (1 .. $arity){
@@ -70,12 +71,12 @@ sub unify {
     }
     return 1;
   } else {
-    # CoQu ÍÑ¤Î½èÍı.
+    # CoQu ç”¨ã®å‡¦ç†.
     print STDERR "   -----\n";
     my($s);
     eval { $s = $a->unify($b) };
     return 0 if $@;
-    # unify ¤ÏÍ­¤Ã¤¿. À®¸ù¤·¤¿¤È¤Ï¸Â¤é¤Ê¤¤¤¬.
+    # unify ã¯æœ‰ã£ãŸ. æˆåŠŸã—ãŸã¨ã¯é™ã‚‰ãªã„ãŒ.
     return 0 if ! defined $s;
     
     return 1 if  $s->isok ;
@@ -135,7 +136,7 @@ sub assert {
   my($env) = {};
 
   my $hindex    = $self->varintern($env, $head);
-  my $goals     = $#_; # ¸å¤Ç, $bodybegin .. $goals ¤È¤ä¤ë¤«¤é.
+  my $goals     = $#_; # å¾Œã§, $bodybegin .. $goals ã¨ã‚„ã‚‹ã‹ã‚‰.
   my $bodybegin = $self->varintern($env, @_);
   my $bodyend   = $cfree - 1;
   my $id = $cells->[ $self->value($hindex) ]->id;
@@ -168,7 +169,7 @@ sub printenv {
   local($self) = shift; my($env) = shift;
   my($k);
   foreach (sort keys %$env){
-    # ÊÑ¿ôËè¤ÎÃÍ¤Î½ĞÎÏ
+    # å¤‰æ•°æ¯ã®å€¤ã®å‡ºåŠ›
     my($val) = $cells->[ $self->value($env->{$_}) ];
     print "$_ = ",
     defined $val ? $val->printname : "(undef)", "\n";
@@ -181,19 +182,19 @@ sub execute {
   my @stack;
   my $goal = $self->value($goals[0]);
   my $val  = $cells->[ $goal ];    die if ! defined $val;
-  # $val ¤Ï, É¬¤º ref ¤Ç¤¢¤ë. ÄÌ¾ï¤Î¥·¥ó¥Ü¥ë¤Î¤Ï¤º.
+  # $val ã¯, å¿…ãš ref ã§ã‚ã‚‹. é€šå¸¸ã®ã‚·ãƒ³ãƒœãƒ«ã®ã¯ãš.
   my(@alt) = @{ $clauses[ $val->id ] };
-  die "no clause" if !@alt;# @alt ¤¬¶õ¤À¤Ã¤¿¤é? ¼ºÇÔ
+  die "no clause" if !@alt;# @alt ãŒç©ºã ã£ãŸã‚‰? å¤±æ•—
   my ($tp0,$cf0) = ($tp,$cfree);
   my ($temp, $subgoals);
   while(1){
     do {
       if (!@goals){
-	$self->printenv($topenv); # À®¸ù!
+	$self->printenv($topenv); # æˆåŠŸ!
       } else {
 	print STDERR "goals:<@goals>\n";
       }
-      # ÊÌ²òÃµº÷¤Î½àÈ÷
+      # åˆ¥è§£æ¢ç´¢ã®æº–å‚™
       until (@goals and @alt){
 	print STDERR "goals:<@goals>\n";
 	return undef if !@stack;
@@ -206,29 +207,29 @@ sub execute {
       $tp = $tp0; $cfree = $cf0;
     } until((($temp, $subgoals) = $self->replicate(shift @alt)),
 	    $self->unify($goal, $self->value($temp)));
-    # Ã±°ì²½¤ËÀ®¸ù ¢ª Å¸³«¤¹¤ë(ÀÑ¤à)
+    # å˜ä¸€åŒ–ã«æˆåŠŸ â†’ å±•é–‹ã™ã‚‹(ç©ã‚€)
     push(@stack,[$tp0 ,$cf0 ,[@alt],[@goals]]);
     shift @goals;
     unshift(@goals, @$subgoals);
     print STDERR " expand!<@goals>($tp0,$cf0=>$tp,$cfree)\n";
     ($tp0, $cf0) = ($tp, $cfree);
-    # ¼¡¤Î½àÈ÷
+    # æ¬¡ã®æº–å‚™
     while (@goals) {
       $goal = $self->value($goals[0]);
       $val  = $cells->[ $goal ];
       if (eval {  $val->isCode }) {
-	# ÆÃ¼ì¥´¡¼¥ë
+	# ç‰¹æ®Šã‚´ãƒ¼ãƒ«
 	my($num) = $val->argnum;
 	last if !$self->CallInlineSub($val, $goal+1..$goal+$num);
-	# ¼Â¹Ô¤Ë¼ºÇÔ¢ª ÊÌ²ò¤ÎÃµº÷¤Ø¿Ê¤à¡Ä¤Ã¤Æ, ¾¡¼ê¤Ë¹Ô¤¯¤«?
-	#  ¢ªÂç¾æÉ×¤é¤·¤¤. ´ñÀ×Åª¤À¤Í^^;
-	# ¼Â¹Ô¤ËÀ®¸ù¢ª ¼¡¤Î¥´¡¼¥ë¤ò¥»¥Ã¥È¤¹¤ë.
+	# å®Ÿè¡Œã«å¤±æ•—â†’ åˆ¥è§£ã®æ¢ç´¢ã¸é€²ã‚€â€¦ã£ã¦, å‹æ‰‹ã«è¡Œãã‹?
+	#  â†’å¤§ä¸ˆå¤«ã‚‰ã—ã„. å¥‡è·¡çš„ã ã­^^;
+	# å®Ÿè¡Œã«æˆåŠŸâ†’ æ¬¡ã®ã‚´ãƒ¼ãƒ«ã‚’ã‚»ãƒƒãƒˆã™ã‚‹.
 	shift @goals;
       } else {
-	# $val ¤Ï, É¬¤º ref ¤Ç¤¢¤ë. ÄÌ¾ï¤Ï¥·¥ó¥Ü¥ë¤Î¤Ï¤º.
+	# $val ã¯, å¿…ãš ref ã§ã‚ã‚‹. é€šå¸¸ã¯ã‚·ãƒ³ãƒœãƒ«ã®ã¯ãš.
 	@alt = @{ $clauses[ $val->id ] };
 	last;
-	# ¥á¥¤¥ó¥ë¡¼¥×¤ÎÀèÆ¬¤ËÌá¤ë
+	# ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—ã®å…ˆé ­ã«æˆ»ã‚‹
       }
     }
   }
@@ -249,7 +250,7 @@ sub replicate {
     if( defined $val && !ref $val &&  ($val < $end) ) {
       #print STDERR "kolemo?", $val < $end , "\n";
       $cells->[ $sink ] = $val + $diff;
-      # º¹Ê¬¤òÂ­¤¹.
+      # å·®åˆ†ã‚’è¶³ã™.
     } else {
       $cells->[ $sink ] = $val;
     }
@@ -258,7 +259,7 @@ sub replicate {
   return ($result, [  $subgoal ..  $subgoal + $goals]);
 }
 
-# ¤ª¤Ş¤±. 
+# ãŠã¾ã‘. 
 {
   package InlineSub;
   sub new {
@@ -274,7 +275,7 @@ sub CallInlineSub {
   local($self) = shift;
   my($sub) = shift;
   my($code)= $sub->code;
-  # °ú¿ô¤ÏÅº»ú!
+  # å¼•æ•°ã¯æ·»å­—!
   #print STDERR "[@_]\n";
   #$self->dump(0, $_[-1]);
   my(@indices) = map { $self->value($_) } @_;
@@ -294,34 +295,34 @@ sub List {
   #my($x) = shift;
   my($y); my $z = "nil";
   while ($y = pop @_) {
-    # ¢­¤³¤ì¤Ç¤Ï¤«¤¨¤Ã¤Æ¤Ş¤º¤¤.
+    # â†“ã“ã‚Œã§ã¯ã‹ãˆã£ã¦ã¾ãšã„.
     # $y = List(@$y) if(defined ref $y and ref $y eq "ARRAY");
     $z = [cons => $y, $z];
   }
   return $z;
 }
-# ²ÄÊÑÄ¹¤Î cons! ... ¤Ë¤Ï¤Ê¤Ã¤Æ¤¤¤Ê¤¤¤Í^^;
-# °ú¿ô¤Ï intern ºÑ¤«, Èİ¤«.     ¢ª Èİ.
-# ½Ò¸ìµ­¹æ¤Ï intern ºÑ¤«, Èİ¤«. ¢ª Èİ.
+# å¯å¤‰é•·ã® cons! ... ã«ã¯ãªã£ã¦ã„ãªã„ã­^^;
+# å¼•æ•°ã¯ intern æ¸ˆã‹, å¦ã‹.     â†’ å¦.
+# è¿°èªè¨˜å·ã¯ intern æ¸ˆã‹, å¦ã‹. â†’ å¦.
 sub varintern {
   local($self) = shift;
-  my $env   = shift;      # Âè°ì°ú¿ô¤Ï,¶É½êÊÑ¿ôÆş¤ì¾ì
-  my $arg0  = $cfree;     # ÀèÆ¬
-  $cfree    = $arg0 + @_; # Éô²°¤À¤±¤ÏÀè¤Ë³ÎÊİ.
+  my $env   = shift;      # ç¬¬ä¸€å¼•æ•°ã¯,å±€æ‰€å¤‰æ•°å…¥ã‚Œå ´
+  my $arg0  = $cfree;     # å…ˆé ­
+  $cfree    = $arg0 + @_; # éƒ¨å±‹ã ã‘ã¯å…ˆã«ç¢ºä¿.
   my $index = $arg0;
   foreach (@_){
     my($val);
     #print STDERR "---<$_>---\n";
-    if(!defined $_){              # undef ¤Ï¤½¤Î¤Ş¤ŞÂåÆş.
+    if(!defined $_){              # undef ã¯ãã®ã¾ã¾ä»£å…¥.
       $val =  $_;
-    } elsif( m/^-?(\d*\.)?\d+/ ){ # ¿ô¤Ï, Number ¤Ë¤¹¤ë
+    } elsif( m/^-?(\d*\.)?\d+/ ){ # æ•°ã¯, Number ã«ã™ã‚‹
       $val =  new Number($_);
     } elsif(ref $_) {
       if(ref $_ eq "ARRAY") {
-	# ARRAY ¤Ê¤é, ºÆµ¢.
+	# ARRAY ãªã‚‰, å†å¸°.
 	my $head = shift @$_;
 	my $narg = @$_;
-	# ÀèÆ¬¤ò¼è¤ê½Ğ¤·¤Æ, Àè¤Ë intern
+	# å…ˆé ­ã‚’å–ã‚Šå‡ºã—ã¦, å…ˆã« intern
 	#print STDERR "$name/$narg, @$_\n";
 	if( ref $head and ref $head eq "CODE"){
 	  $head = new InlineSub($head, $narg);
@@ -329,20 +330,20 @@ sub varintern {
 	  $head = $self->intern($head, $narg);
 	}
 	$val =  $self->varintern($env, $head, @$_);
-	# °ì³ç¤·¤Æ varintern ¤·¤Ê¤¤¤È, Ï¢Â³ÎÎ°è¤Ë
-	# Æş¤Ã¤Æ¤¯¤ì¤Ê¤¤.
-      }elsif(ref $_ eq "SCALAR"){ # SCALAR ¤Ê¤é, ¶É½êÊÑ¿ô¤È¤¹¤ë.
-	if( exists $env->{$$_} ){ # ºÆ½Ğ¸½
+	# ä¸€æ‹¬ã—ã¦ varintern ã—ãªã„ã¨, é€£ç¶šé ˜åŸŸã«
+	# å…¥ã£ã¦ãã‚Œãªã„.
+      }elsif(ref $_ eq "SCALAR"){ # SCALAR ãªã‚‰, å±€æ‰€å¤‰æ•°ã¨ã™ã‚‹.
+	if( exists $env->{$$_} ){ # å†å‡ºç¾
 	  $val = $env->{$$_};
-	} else {                  # ½é½Ğ
+	} else {                  # åˆå‡º
 	  $val = undef;
 	  $env->{$$_} = $index;
 	}
-      } else {                    # ¤¤¤º¤ì¤Ç¤â¤Ê¤¤, Ì¤ÃÎ¤Î ref
-	$val = $_;    # ¢ª perl ¤Î object.
+      } else {                    # ã„ãšã‚Œã§ã‚‚ãªã„, æœªçŸ¥ã® ref
+	$val = $_;    # â†’ perl ã® object.
       }
     } else {
-      # ¤¤¤º¤ì¤Ç¤â¤Ê¤¤¤Ê¤é, ¥·¥ó¥Ü¥ë. 
+      # ã„ãšã‚Œã§ã‚‚ãªã„ãªã‚‰, ã‚·ãƒ³ãƒœãƒ«. 
       $val =  $self->intern($_, 0);
     }
     $cells->[ $index ] = $val;
@@ -356,7 +357,7 @@ sub intern {
   return $intern{$name} if exists $intern{$name};
 
   # else new symbol
-  $maxid += 1;   # $maxid ++ ¤Ï, ¥³¥¢¤òÅÇ¤¯.
+  $maxid += 1;   # $maxid ++ ã¯, ã‚³ã‚¢ã‚’åã.
   my $sym = Symbol->new($name, $narg, $self, $maxid);
   $intern{$name} = $sym;
   return $sym;
@@ -371,23 +372,23 @@ sub varextern {
   return wantarray ? @res : [@res];
 }
 sub extern {
-  # °ú¿ô: $goal ¡á¡á ¥»¥ë¾å¤ÎÅº»ú
+  # å¼•æ•°: $goal ï¼ï¼ ã‚»ãƒ«ä¸Šã®æ·»å­—
   local($self) = shift;
   my($env, $goal) = @_;
   my(@result);
-  # deref ¤¬Í×¤ë¤«¤É¤¦¤«¤Ï, ¤³¤Î»şÅÀ¤Ç¤ÏÉÔÌÀ,¤È.
+  # deref ãŒè¦ã‚‹ã‹ã©ã†ã‹ã¯, ã“ã®æ™‚ç‚¹ã§ã¯ä¸æ˜,ã¨.
   return undef if ! defined $goal ;
   #print STDERR "<x<$goal>\n";
   #return $env->{$goal} if exists $env->{$goal};
 
   #my($valindex) = $self->value($cells->[$goal]);
-  # ¢¬¤³¤ó¤Ê»ö¤ò¤¹¤ë¤È, value ¤ÎÌá¤êÃÍ¤¬Åº»ú¤Ç¤Ê¤¯,
-  #   ref ¤½¤Î¤â¤Î¤Ë¤Ê¤ë»ş¤¬Í­¤ë!
+  # â†‘ã“ã‚“ãªäº‹ã‚’ã™ã‚‹ã¨, value ã®æˆ»ã‚Šå€¤ãŒæ·»å­—ã§ãªã,
+  #   ref ãã®ã‚‚ã®ã«ãªã‚‹æ™‚ãŒæœ‰ã‚‹!
   my($valindex) = $self->value($goal);
   my($val) = $cells->[ $valindex ];
   #print STDERR "<-$valindex/$val->\n";
   return undef if ! defined $val;
-  # ¤µ¤â¤Ê¤¯¤Ğ, $val ¤Ï ref ¤Ç¤¢¤ë¤Ï¤º.
+  # ã•ã‚‚ãªãã°, $val ã¯ ref ã§ã‚ã‚‹ã¯ãš.
 
   if ( ref $val ){
     my($name, $args) = ($val->printname, $val->argnum);
@@ -399,10 +400,10 @@ sub extern {
     } else {
       return $name;
     }
-    # extern ¤ËÅÏ¤¹¤Î¤ÏÅº»ú.  ÃÍ¤¸¤ã¤Ê¤¤¤è¤ó.
+    # extern ã«æ¸¡ã™ã®ã¯æ·»å­—.  å€¤ã˜ã‚ƒãªã„ã‚ˆã‚“.
 
   } else {
-    die '¤½¤ó¤Ê¤Ğ¤«¤Ê!';
+    die 'ãã‚“ãªã°ã‹ãª!';
   }
 }
 sub dump {
@@ -414,7 +415,7 @@ sub dump {
   for($i = $from; $i <= $to; $i++){
     printf "%3d: ", $i;
 
-    # ¤³¤Î°ÌÃÖ¤Î¾ğÊó
+    # ã“ã®ä½ç½®ã®æƒ…å ±
     my($cont) = $cells->[$i];
     if(! defined $cont ){
       print "undef\n";
@@ -423,9 +424,9 @@ sub dump {
       print ref $cont, "(", $cont->printname, ")\n";
       next;
     }
-    # ¢¬ ½ªÃ¼
+    # â†‘ çµ‚ç«¯
     # else
-    # ¢­ Èó½ªÃ¼: ¹Ô¤Ã¤¿Àè¤¬Í­¤ë¤Ê¤é, ¤½¤Î¾ğÊó
+    # â†“ éçµ‚ç«¯: è¡Œã£ãŸå…ˆãŒæœ‰ã‚‹ãªã‚‰, ãã®æƒ…å ±
     printf "%3d => ", $cont;
     my($deref) = $self->value($i);
     my($cont2) = $cells->[$deref];
@@ -441,19 +442,19 @@ sub dump {
 sub execute_old {
   local($self) = shift;
   my(@goals) = @{$_[0]};
-  return 1 if ! @goals ;  # goals ¤¬¶õ ¢ª À®¸ù
+  return 1 if ! @goals ;  # goals ãŒç©º â†’ æˆåŠŸ
 
   print STDERR "goals:<@goals>\n";
   #$self->dump;
   # else
-  # ¥«¥ì¥ó¥È¥´¡¼¥ë¤Î index¤ò¼è¤ê½Ğ¤¹.
+  # ã‚«ãƒ¬ãƒ³ãƒˆã‚´ãƒ¼ãƒ«ã® indexã‚’å–ã‚Šå‡ºã™.
   my( $goal ) = $self->value(shift @goals);
   my( $val  ) = $cells->[ $goal ];
 
-  # ÆÃ¼ì¥±¡¼¥¹¤Î½èÍı¤ò¤³¤³¤Ç¹Ô¤¦. Îã¤¨¤Ğ¡Ä
+  # ç‰¹æ®Šã‚±ãƒ¼ã‚¹ã®å‡¦ç†ã‚’ã“ã“ã§è¡Œã†. ä¾‹ãˆã°â€¦
   while(defined $val
 	and eval {  $val->isCode } ){ 
-    # ¤³¤ì¤Ã¤Æ, ·ë¹½»ş´Ö¿©¤¦¤è¤Í?
+    # ã“ã‚Œã£ã¦, çµæ§‹æ™‚é–“é£Ÿã†ã‚ˆã­?
     my($num) = $val->argnum;
     my($bool)=
       $self->CallInlineSub($val, $goal + 1 .. $goal + $num);
@@ -469,15 +470,15 @@ sub execute_old {
     $val = $cells->[ $goal ];
     #print STDERR "<<<<< $val >>>>\n" if defined $val;
   }
-  # @goals ¤Ï²õ¤µ¤Ê¤¤.
+  # @goals ã¯å£Šã•ãªã„.
   my($tp0, $cf0) = ($tp, $cfree);
   
   foreach ( @{ $clauses[ $val->id ] } ){
-    # ¥«¥ì¥ó¥È¥´¡¼¥ë¤ËÂĞ±ş¤¹¤ë³Æ¸õÊäËè¤Ë
+    # ã‚«ãƒ¬ãƒ³ãƒˆã‚´ãƒ¼ãƒ«ã«å¯¾å¿œã™ã‚‹å„å€™è£œæ¯ã«
     my ($temp, $subgoals) = $self->replicate($_);
     #$self->dump($temp);
     if ( $self->unify($goal, $self->value($temp)) ){
-      # @$othergoal ¤Ï, Ëè²ó²õ¤¹.
+      # @$othergoal ã¯, æ¯å›å£Šã™.
       my( $othergoals ) = [ @$subgoals, @goals ];
       if ( $self->execute_old($othergoals) ){
 	#print STDERR "ok(@goals//@$othergoals)\n";
@@ -490,7 +491,7 @@ sub execute_old {
     } else {
       print STDERR   "   try other\n";
     }
-    # ¤³¤³¤Ç, backtrack ¤ò¹Ô¤¦.
+    # ã“ã“ã§, backtrack ã‚’è¡Œã†.
     my($tptmp) = $tp;
     $cells->[ $trail[ $tptmp-- ] ] = undef while $tptmp > $tp0;
     $tp = $tp0;

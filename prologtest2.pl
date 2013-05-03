@@ -36,4 +36,5 @@ print "grandparent(jane, X)\n => ";
 $p->query([grandparent=> 'jane', \'X']);
 
 #$p->dump(26);
-$p->query([parent => 'jane', \'X'], [parent => \'X', \'Y']);
+$p->query([parent => 'jane', \'X']
+	  , [parent => \'X', \'Y']);

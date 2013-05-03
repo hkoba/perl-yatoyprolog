@@ -1,4 +1,5 @@
 package InstanceVariables;
+# -*- mode: perl; coding: utf-8 -*-
 use strict;
 use Carp;
 use warnings FATAL => qw/all/;
