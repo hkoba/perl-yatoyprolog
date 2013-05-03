@@ -57,9 +57,9 @@ $p->assert([parent => 'mary',         'joe'  ]);
 $p->assert([parent => 'phil', 'beau']);
 $p->assert([parent => 'jane', 'john']);
 
-$p->assert([grandparent => \'X',\'Z'],
-	   [parent => \'X',\'Y'],
-	   [parent =>    \'Y',\'Z']);
+$p->assert([grandparent => \'X',     \'Z'],
+	   [parent =>      \'X',\'Y'],
+	   [parent =>           \'Y',\'Z']);
 
 print "grandparent(jane, X) => \n";
 $p->query([grandparent=> 'jane', \'X']);
@@ -83,6 +83,13 @@ perl5 でインスタンス変数へのアクセスに `$self->` を書くこと
 嫌っていました。
 
 ```perl
- $self->{instvar}
+ $self->{instvar}   # Too long!
+
+ $instvar           # What I want!
 ```
 
+あれこれ悩んだ結果、個々の変数を tied 変数にしたらどうか?と考えたのでした。
+でも、今では `$self->` と書くことにも慣れ、 `use fields` のメリットも
+感じるようになったので、この方式は皆さんにはお薦めしません。
+
+もし機会があったら、 use fields で書き直してみたいものです...
