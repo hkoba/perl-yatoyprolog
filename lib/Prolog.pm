@@ -84,6 +84,7 @@ sub unify {
   }
   die "Why?";
 }
+
 {
   package Symbol;
   #%OVERLOAD = ( "==" => \&numcomp,);
@@ -116,18 +117,20 @@ sub unify {
     $argnum = shift; return $self; # store
   }
 }
-{package Number;
- our %OVERLOAD = ('==' => \&numeq,
-	       '""' => \&printname,
-	      # 'bool' => \&bool,
-	      );
- sub numeq {
-   my($a, $b, $flag) = @_;
-   return $$a == $$b;
- }
- sub argnum { 0;};
- sub printname { my($me) = shift; $$me; }
- sub new { my($pack, $val) = @_; bless \$val, $pack;}
+
+{
+  package Number;
+  our %OVERLOAD = ('==' => \&numeq,
+		   '""' => \&printname,
+		   # 'bool' => \&bool,
+		  );
+  sub numeq {
+    my($a, $b, $flag) = @_;
+    return $$a == $$b;
+  }
+  sub argnum { 0;};
+  sub printname { my($me) = shift; $$me; }
+  sub new { my($pack, $val) = @_; bless \$val, $pack;}
 }
 
 sub assert {
@@ -453,7 +456,7 @@ sub execute_old {
 
   # 特殊ケースの処理をここで行う. 例えば…
   while(defined $val
-	and eval {  $val->isCode } ){ 
+	and $val->can('isCode') and $val->isCode ){
     # これって, 結構時間食うよね?
     my($num) = $val->argnum;
     my($bool)=
