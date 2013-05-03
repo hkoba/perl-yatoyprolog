@@ -1,5 +1,7 @@
 package InstanceVariables;
 use strict;
+use Carp;
+use warnings FATAL => qw/all/;
 
 # 継承を可能にするためには,
 # このパッケージを利用するクラスのインスタンス全てについて,
@@ -24,15 +26,15 @@ our $array_template = <<'EODef';
     bless \$v;
   }
   sub FETCH {
-    Die("PACK", "VAR", "array") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "array") if !defined $PACK::self;
     $storage{$$PACK::self}->[$_[1]];
   }
   sub STORE {
-    Die("PACK", "VAR", "array") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "array") if !defined $PACK::self;
     $storage{$$PACK::self}->[$_[1]] = $_[2];
   }
   sub length {
-    Die("PACK", "VAR", "array") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "array") if !defined $PACK::self;
     print "~~", $#{$storage{$$PACK::self}}, "\n" ;
     $#{$storage{$$PACK::self}};
   }
@@ -51,24 +53,24 @@ our $hash_template = <<'EODef';
     bless \$v;
   }
   sub FETCH {
-    Die("PACK", "VAR", "hash") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "hash") if !defined $PACK::self;
     $storage{$$PACK::self}->{$_[1]};
   }
   sub STORE {
-    Die("PACK", "VAR", "hash") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "hash") if !defined $PACK::self;
     $storage{$$PACK::self}->{$_[1]} = $_[2];
   }
   sub EXISTS {
-    Die("PACK", "VAR", "hash") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "hash") if !defined $PACK::self;
     exists $storage{$$PACK::self}->{$_[1]};
   }
   sub FIRSTKEY {
-    Die("PACK", "VAR", "hash") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "hash") if !defined $PACK::self;
     my($k, $v) = each %{$storage{$$PACK::self}};
     $k;
   }
   sub NEXTKEY {
-    Die("PACK", "VAR", "hash") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "hash") if !defined $PACK::self;
     my($k, $v) = each %{$storage{$$PACK::self}};
     $k;
   }
@@ -87,11 +89,11 @@ our $scalar_template = <<'EODef';
     bless \$v;
   }
   sub FETCH {
-    Die("PACK", "VAR", "scalar") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "scalar") if !defined $PACK::self;
     $storage{$$PACK::self};
   }
   sub STORE {
-    Die("PACK", "VAR", "scalar") if !defined $PACK::self;
+    InstanceVariables::Die("PACK", "VAR", "scalar") if !defined $PACK::self;
     $storage{$$PACK::self} = $_[1];
   }
   tie $PACK::VAR, 'PACK::VAR::scalar';
@@ -101,12 +103,12 @@ EODef
 {
   package InstanceVariables::Object;
   sub new {
-    my ($id) = ++$InstanceVariables::uniq_id;
-    my ($self) = \$id;
     my ($pack) = shift;
-    # \$self ではない！ \$id だって点が, 味噌.
-    bless $self, $pack;
-    $self->init(@_) if exists $PACK::{"init"};
+    my ($id) = ++$InstanceVariables::uniq_id;
+    my ($self) = bless \$id, $pack;
+    if (my $sub = $self->can("init")) {
+      $sub->($self, @_);
+    }
     $self;
   }
   sub DESTROY {
@@ -179,7 +181,7 @@ sub do_eval {
 
 sub Die {
   my($pack, $var, $type) = @_;
-  die "lack of \$self: $type $var in $pack";
+  croak "lack of \$self: $type $var in $pack";
 }
 
 1;
