@@ -3,28 +3,40 @@ use strict;
 use warnings FATAL => qw/all/;
 use FindBin;
 use lib "$FindBin::Bin/lib";
-use Prolog;
+use Prolog qw/List/;
+
 
 my $p = new Prolog;
-$p->assert([append => 'nil', \'Y', \'Y']);
-$p->assert([append => [cons => \'A', \'X'], \'Y', [cons => \'A', \'Z']]
-	   => [append => \'X', \'Y', \'Z']);
+$p->assert([member=> \'A', [cons=> \'A', \'B']]);
+$p->assert([member=> \'A', [cons=> \'C', \'B']]
+	   => [member=> \'A', \'B']);
+print "#\n---\nmember([c, V], [[a, a], [b, b], [c, c], [d, d], [c, q]]) =>\n";
+$p->query([member => [c => \'V']
+			, List([a => 'a'],
+			       [b => 'b'],
+			       [c => 'c'],
+			       [d => 'd'],
+			       [c => 'q'])]);
+print "\n\n";
 
-$p->query([append => [cons => 'a', 'nil'], [cons => 'b', 'nil'], \'X']);
+$p->assert([parent =>         'john', 'sally']);
+$p->assert([parent =>         'john', 'joe'  ]);
+$p->assert([parent => 'mary',         'joe'  ]);
+$p->assert([parent => 'phil', 'beau']);
+$p->assert([parent => 'jane', 'john']);
 
-__END__
+$p->assert([grandparent => \'X',\'Z'],
+	   [parent => \'X',\'Y'],
+	   [parent =>    \'Y',\'Z']);
+#$p->dump;
+#$env = {};
+#$x = $p->varintern($env, [grandparent, jane, \'X']);
+#$p->dump; $p->execute([$x]);
+print "#\n---\ngrandparent(jane, X) =>\n";
+$p->query([grandparent=> 'jane', \'X']);
 
-# $x =$p->varintern({},"append", [cons => undef, undef], \"HEKEKE" ,\"HEKEKE");
-# $y =$p->varintern({},"append", undef , \"UHOHO" ,undef);
+print "#\n---\nparent(jane, X), parent(X, Y) =>\n";
 
-#$ans = $p->query(
-# [append => [cons => 'a', [cons => 'b', 'nil']],
-#            [cons => 'c', 'nil'],
-#            [cons => 'a', [cons => 'b', [cons => 'c', 'nil']]]
-# ]);
-# $p->dump;
-
-
-$p->dump;
-print "unify: ", $p->unify($x, $y),"\n";
-$p->dump;
+#$p->dump(26);
+$p->query([parent => 'jane', \'X']
+	  , [parent => \'X', \'Y']);

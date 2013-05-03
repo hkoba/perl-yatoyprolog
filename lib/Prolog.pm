@@ -49,7 +49,7 @@ sub remember {
 sub unify {
   local($self) = shift;
   my($t1, $t2) = @_;
-  print STDERR "   $t1 <-> $t2\n";
+  # print STDERR "   $t1 <-> $t2\n";
   return 1 if $t1 == $t2;
 
   my ($a, $b) = ($cells->[$t1] , $cells->[$t2]);
@@ -72,7 +72,7 @@ sub unify {
     return 1;
   } else {
     # CoQu 用の処理.
-    print STDERR "   -----\n";
+    # print STDERR "   -----\n";
     my($s);
     eval { $s = $a->unify($b) };
     return 0 if $@;
@@ -159,7 +159,7 @@ sub query {
   my($topgoal) = $self->varintern($env, @_);
   my($end) = $cfree - 1;
   my(@args) = $topgoal .. $topgoal + $#_;
-  print STDERR "<<@args>>\n";
+  # print STDERR "<<@args>>\n";
   $topenv = $env;
   if($self->execute([@args])){
     my(@res) = $self->varextern({}, @args);
@@ -194,12 +194,13 @@ sub execute {
     do {
       if (!@goals){
 	$self->printenv($topenv); # 成功!
+	print "\n\n";
       } else {
-	print STDERR "goals:<@goals>\n";
+	# print STDERR "goals:<@goals>\n";
       }
       # 別解探索の準備
       until (@goals and @alt){
-	print STDERR "goals:<@goals>\n";
+	# print STDERR "goals:<@goals>\n";
 	return undef if !@stack;
 	my ($alt, $goals);
 	($tp0, $cf0, $alt, $goals) = @{ pop @stack };
@@ -214,7 +215,7 @@ sub execute {
     push(@stack,[$tp0 ,$cf0 ,[@alt],[@goals]]);
     shift @goals;
     unshift(@goals, @$subgoals);
-    print STDERR " expand!<@goals>($tp0,$cf0=>$tp,$cfree)\n";
+    # print STDERR " expand!<@goals>($tp0,$cf0=>$tp,$cfree)\n";
     ($tp0, $cf0) = ($tp, $cfree);
     # 次の準備
     while (@goals) {
@@ -242,7 +243,7 @@ sub replicate {
   local($self) = shift;
   my($clause) = shift;
   my($src, $bodybegin, $goals, $end) = @$clause;
-  print STDERR "   <<--($src, $bodybegin, $goals, $end)--\n";
+  # print STDERR "   <<--($src, $bodybegin, $goals, $end)--\n";
   my($diff) = $cfree - $src;
   my($result) = $cfree;
   for( $sink = $cfree,   $cfree += $end - $src + 1
