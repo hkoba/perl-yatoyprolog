@@ -1,12 +1,7 @@
-#!/usr/local/bin/perl5
-# -*- cperl -*-
-
 package Prolog;
-$ver =
-  q$Id: prolog,v 1.62 1995/12/19 06:41:50 kobayasi Exp $;
+use strict;
 use Tk::Pretty;
 use Benchmark;
-use strict qw(subs refs);
 use integer;
 use Carp;
 use InstanceVariables   qw( maxid %intern @clauses
@@ -17,9 +12,12 @@ use InstanceVariables   qw( maxid %intern @clauses
 			    sink
 			  );
 use FileHandle;
-require "./test-prolog/CellElem.pm";
-require "./test-prolog/Reader.pm";
-require "./test-prolog/Dumper.pm";
+use CellElem;
+use Reader;
+use Dumper;
+
+our $self;
+
 sub reader {  Reader->new( shift ); }
 sub sink {
   local($self) = shift;
@@ -62,6 +60,7 @@ sub relocate {
   my ($from, $to, $limit) = @_; # already derefed.
   $limit ||= $to;
   my $c = $cells;
+  my $relbase = 0; # XXX: ???
   push @$c,
   map { defined $_ && !ref($_) &&
 	  $_ >= $from && $_ <= $limit

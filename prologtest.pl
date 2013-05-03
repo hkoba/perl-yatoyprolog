@@ -1,11 +1,16 @@
-require "./prolog";
-no strict;
-$p = new Prolog;
+#!/usr/bin/env perl
+use strict;
+use warnings FATAL => qw/all/;
+use FindBin;
+use lib "$FindBin::Bin/lib";
+use Prolog;
+
+my $p = new Prolog;
 $p->assert(
- [append => 'nil', \Y, \Y]);
+ [append => 'nil', \'Y', \'Y']);
 $p->assert(
- [append => [cons => \A, \X], \Y, [cons => \A, \Z]],
- [append => \X, \Y, \Z]);
+ [append => [cons => \'A', \'X'], \'Y', [cons => \'A', \'Z']],
+ [append => \'X', \'Y', \'Z']);
 #$ans = $p->query(
 # [append => [cons => 'a', [cons => 'b', 'nil']],
 #            [cons => 'c', 'nil'],
@@ -16,7 +21,7 @@ $p->dump;
 $p->query(
  [append => [cons => 'a', 'nil'],
             [cons => 'b', 'nil'],
-            \X,
+            \'X',
  ]);
 
 

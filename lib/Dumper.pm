@@ -1,6 +1,8 @@
-sub extern {
-  
-}
+package Dumper;
+use Exporter qw/import/;
+our @EXPORT = qw/dump/;
+
+
 sub dump {
   local($Prolog::self) = shift;
   my($from, $to) = @_;

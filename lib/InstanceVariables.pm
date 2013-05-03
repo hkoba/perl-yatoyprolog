@@ -1,20 +1,26 @@
 package InstanceVariables;
+use strict;
+
 # 継承を可能にするためには,
 # このパッケージを利用するクラスのインスタンス全てについて,
 # ↓ユニークな id を与える必要が有る.
-$InstanceVariables::uniq_id = 0;
+our $uniq_id = 0;
+
+our $debug = 0;
+our $debug_template = 0;
 
 # storage{$PACK::self} → storage[$PACK::self]
 # にした方が速いが, 継承が使えなくなる…
 # 一々 PACK::VAR::array と書かずに, 先頭で
 # package 文を使えばそれでしまいのような…
-$array_template = <<'EODef';
+our $array_template = <<'EODef';
 { package PACK::VAR::array;
-  use integer;
+  use strict;
+  our %storage;
   sub TIEARRAY {
     my($v) = "";
     print "  tie array\tPACK::VAR\n"
-      if defined $InstanceVariables::debug;
+      if $InstanceVariables::debug;
     bless \$v;
   }
   sub FETCH {
@@ -30,16 +36,18 @@ $array_template = <<'EODef';
     print "~~", $#{$storage{$$PACK::self}}, "\n" ;
     $#{$storage{$$PACK::self}};
   }
-  tie @PACK::VAR, PACK::VAR::array;
+  tie @PACK::VAR, 'PACK::VAR::array';
 }
 EODef
-$hash_template = <<'EODef';
+
+our $hash_template = <<'EODef';
 { package PACK::VAR::hash;
-  use integer;
+  use strict;
+  our %storage;
   sub TIEHASH {
     my($v) = "";
     print "  tie hash\tPACK::VAR\n"
-      if defined $InstanceVariables::debug;
+      if $InstanceVariables::debug;
     bless \$v;
   }
   sub FETCH {
@@ -64,16 +72,18 @@ $hash_template = <<'EODef';
     my($k, $v) = each %{$storage{$$PACK::self}};
     $k;
   }
-  tie %PACK::VAR, "PACK::VAR::hash";
+  tie %PACK::VAR, 'PACK::VAR::hash';
 }
 EODef
-$scalar_template = <<'EODef';
+
+our $scalar_template = <<'EODef';
 { package PACK::VAR::scalar;
-  use integer;
+  use strict;
+  our %storage;
   sub TIESCALAR {
     my($v) = "";
     print "  tie scalar\tPACK::VAR\n"
-      if defined $InstanceVariables::debug;
+      if $InstanceVariables::debug;
     bless \$v;
   }
   sub FETCH {
@@ -84,24 +94,24 @@ $scalar_template = <<'EODef';
     Die("PACK", "VAR", "scalar") if !defined $PACK::self;
     $storage{$$PACK::self} = $_[1];
   }
-  tie $PACK::VAR, PACK::VAR::scalar;
+  tie $PACK::VAR, 'PACK::VAR::scalar';
 }
 EODef
 
-$allocater_template =  <<'EODef';
-use integer;
- sub PACK::new {
-   my($id) = ++$InstanceVariables::uniq_id;
-   my($self) = \$id;
-   my($pack) = shift;
-   # \$self ではない！ \$id だって点が, 味噌.
-   bless $self, $pack;
-   $self->init(@_) if exists $PACK::{"init"};
-   $self;
- }
-sub PACK::DESTROY {
-    my($self) = @_;
-    print STDERR "<destroy: $$self>\n";
+{
+  package InstanceVariables::Object;
+  sub new {
+    my ($id) = ++$InstanceVariables::uniq_id;
+    my ($self) = \$id;
+    my ($pack) = shift;
+    # \$self ではない！ \$id だって点が, 味噌.
+    bless $self, $pack;
+    $self->init(@_) if exists $PACK::{"init"};
+    $self;
+  }
+  sub DESTROY {
+    my ($self) = @_;
+    print STDERR "<destroy: $$self>\n" if $InstanceVariables::debug;
     foreach (@PACK::HAS){
 	if( s/^\@// ){
 	    delete ${"PACK::${_}::array::storage"}{$self};
@@ -113,39 +123,58 @@ sub PACK::DESTROY {
 	    die "Unknown specifier: $_";
 	}
     }
+  }
 }
-EODef
+
+sub globref {
+  my ($class, $name) = @_;
+  no strict 'refs';
+  \*{join("::", $class, $name)};
+}
 
 sub import {
-    my($callpack) = caller;
+    my ($callpack) = caller;
     # caller の HAS の各要素毎に
     # package を作る.
-    shift; # 自分の名前は捨てる.
-    if(!defined @{"${callpack}::HAS"} && @_) {
-	# 引数を, HAS に set.
-	@{"${callpack}::HAS"} = @_; # 
+    my $pack = shift;
+
+    my $has = globref($callpack, 'HAS');
+
+    if(!defined *{$has}{ARRAY} && @_) {
+      # 引数を, HAS に set.
+      *$has = [@_]
     }
-    foreach (@{"${callpack}::HAS"}) {
+    foreach (@{*{$has}{ARRAY}}) {
 	if( s/^\@// ){
+	  my $sym = globref($callpack, $_);
+	  *$sym = [];
 	    &do_eval($array_template, $callpack, $_);
 	    # tie @{"${callpack}::$_"},"${callpack}::${_}::array";
 	} elsif( s/^\%//) {
+	  my $sym = globref($callpack, $_);
+	  *$sym = {};
 	    &do_eval($hash_template, $callpack, $_);
 	} elsif( s/^\$// || m/^\w/ ){
+	  my $sym = globref($callpack, $_);
+	  *$sym = \ (my $var = undef);
 	    &do_eval($scalar_template, $callpack, $_);
         } else {
 	    die "Unknown specifier: $_";
 	}
     }
 
-    &do_eval($allocater_template, $callpack);
+    {
+      my $isa = globref($callpack, 'ISA');
+      *$isa = ["InstanceVariables::Object"];
+    }
 }
 sub do_eval {
     my($template, $callpack, $varname) = @_;
     $template =~ s/PACK/$callpack/g;
-    $template =~ s/VAR/$varname/g if defined $varname;
-    print "===\n$template---\n" if defined $debug_template;
+    $template =~ s/VAR/$varname/g if $varname;
+    print "===\n$template---\n" if $debug_template;
     eval $template;
+    die $@ if $@;
 }
 
 sub Die {

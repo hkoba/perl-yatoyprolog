@@ -10,7 +10,7 @@ sub printname { "noname";}
 sub IsCompound { 0; }
 sub IsAtomic   { 0; }
 
-package CellElem::Atomic; @CellElem::Atomic::ISA = qw(CellElem);
+package CellElem::Atomic; our @ISA = qw(CellElem);
 use Carp;
 sub IsAtomic   { 1; }
 # サイズ1の セル要素(数値/シンボル)の, ベースクラス
@@ -21,7 +21,7 @@ sub replicate_self {
   croak " this is not a compound! ";
 }
 
-package CellElem::Compound; @CellElem::Compound::ISA = qw(CellElem);
+package CellElem::Compound; our @ISA = qw(CellElem);
 # サイズNのセル要素の管理代理人となるオブジェクトの
 # ベースクラス.
 BEGIN { sub new {
@@ -60,21 +60,21 @@ sub replicate {
   $cells->relocate( $self->headix, $self->lastix,
 		   $self->relocatelimit );
 }
-package Term; @Term::ISA = qw(CellElem);
+package Term; our @ISA = qw(CellElem);
 # 項
 sub isTerm {1;}
 
-package SimpleTerm;   @SimpleTerm::ISA = qw(CellElem::Atomic   Term);
+package SimpleTerm;   our @ISA = qw(CellElem::Atomic   Term);
 # 単純項
 
-package CompoundTerm; @CompoundTerm::ISA = qw(CellElem::Compound Term);
+package CompoundTerm; our @ISA = qw(CellElem::Compound Term);
 # 複合項
 sub printname {
   my $self = shift;
   $self->functor->printname . "/" . $self->arity;
 }
 
-package Symbol;      @Symbol::ISA = qw(SimpleTerm);
+package Symbol;      our @ISA = qw(SimpleTerm);
 # 記号 ＝ 単純項
 #%OVERLOAD = ( "==" => \&numcomp,);
 use DefStruct qw(cells id printname);
