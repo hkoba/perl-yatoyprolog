@@ -118,6 +118,7 @@ EODef
     }
     $self;
   }
+  # XXX: This DESTROY is *NOT* working, sorry.
   sub DESTROY {
     my ($self) = @_;
     print STDERR "<destroy: $$self>\n" if $InstanceVariables::debug;
